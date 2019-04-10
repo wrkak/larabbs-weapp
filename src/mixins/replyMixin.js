@@ -31,14 +31,10 @@ export default class ReplyMixin extends wepy.mixin {
         let replies = repliesResponse.data.data
         // 获取当前用户
         let user = await this.$parent.getCurrentUser()
-        replies.forEach(function (reply) {
+        replies.forEach((reply) => {
            // 控制是否可以删除
-          // reply.can_delete = this.canDelete(user, reply)
-          if (!user) {
-              reply.can_delete = false
-          } else {
-              reply.can_delete = (reply.user_id === user.id)
-          }
+          reply.can_delete = this.canDelete(user, reply)
+
            // 格式化回复创建时间
           reply.created_at_diff = util.diffForHumans(reply.created_at)
         })
@@ -60,13 +56,14 @@ export default class ReplyMixin extends wepy.mixin {
       })
     }
   }
+
   canDelete(user, reply) {
     if (!user) {
       return false
     }
 
     // 用户未回复发布者 或 有管理内容权限
-    return (reply.user_id === user.id)
+    return (reply.user_id === user.id) || this.$parent.can('manage_contents')
   }
   async onPullDownRefresh() {
     this.noMoreData = false
